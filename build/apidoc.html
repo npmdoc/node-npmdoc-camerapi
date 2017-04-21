@@ -1,0 +1,350 @@
+<div class="apidocDiv">
+<style>
+/*csslint
+*/
+.apidocDiv {
+    background: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.apidocDiv a[href] {
+    color: #33f;
+    font-weight: bold;
+    text-decoration: none;
+}
+.apidocDiv a[href]:hover {
+    text-decoration: underline;
+}
+.apidocCodeCommentSpan {
+    background: #bbf;
+    color: #000;
+    display: block;
+}
+.apidocCodeKeywordSpan {
+    color: #d00;
+    font-weight: bold;
+}
+.apidocCodePre {
+    background: #eef;
+    border: 1px solid;
+    color: #777;
+    padding: 5px;
+    white-space: pre-wrap;
+}
+.apidocFooterDiv {
+    margin-top: 20px;
+    text-align: center;
+}
+.apidocModuleLi {
+    margin-top: 10px;
+}
+.apidocSectionDiv {
+    border-top: 1px solid;
+    margin-top: 20px;
+}
+.apidocSignatureSpan {
+    color: #777;
+    font-weight: bold;
+}
+</style>
+<h1>api documentation for
+    <a
+
+        href="https://github.com/leandroosalas/camerapi"
+
+    >camerapi (v0.1.0)</a>
+</h1>
+<h4>Raspberry Pi Camera module</h4>
+<div class="apidocSectionDiv"><a
+    href="#apidoc.tableOfContents"
+    id="apidoc.tableOfContents"
+><h1>table of contents</h1></a><ol>
+
+    <li class="apidocModuleLi"><a href="#apidoc.module.camerapi">module camerapi</a><ol>
+
+        <li>
+
+            <a class="apidocElementLiA" href="#apidoc.element.camerapi.camerapi">
+            function <span class="apidocSignatureSpan"></span>camerapi
+            <span class="apidocSignatureSpan">()</span>
+            </a>
+
+        </li>
+
+    </ol></li>
+
+</ol></div>
+
+<div class="apidocSectionDiv">
+<h1><a href="#apidoc.module.camerapi" id="apidoc.module.camerapi">module camerapi</a></h1>
+
+
+    <h2>
+        <a href="#apidoc.element.camerapi.camerapi" id="apidoc.element.camerapi.camerapi">
+        function <span class="apidocSignatureSpan"></span>camerapi
+        <span class="apidocSignatureSpan">()</span>
+        </a>
+    </h2>
+    <ul>
+    <li>description and source-code<pre class="apidocCodePre">function Camera(){
+	
+	this.ENCODING_JPEG = &#x22;jpg&#x22;;
+	this.ENCODING_BMP = &#x22;bmp&#x22;;
+	this.ENCODING_GIF = &#x22;gif&#x22;;
+	this.ENCODING_PNG = &#x22;png&#x22;;
+	
+	this.filename = null;
+	this.folder = null;
+	this.command = &#x22;raspistill&#x22;;
+	this.parameters= [];
+	
+	this.takePicture = function takePicture(file,callback){
+		
+		if (typeof(file) == &#x22;function&#x22;) {
+			callback = file;
+			file=null;
+		}
+		
+		if(!this.folder){
+			this.folder = util.format(&#x22;%s/pitures&#x22;, __dirname);
+		}
+		
+		if(file){
+			this.filename = util.format(&#x22;%s/%s&#x22;, this.folder, file);
+		}else{
+			this.filename = util.format(&#x22;%s/%s.jpg&#x22;, this.folder, new Date().toJSON());
+		}
+		
+		this.output(this.filename);
+		
+		this.command = &#x22;raspistill&#x22;;
+		
+		for(key in this.parameters){
+		
+			if(this.parameters[key]){
+				this.command+= util.format(&#x27; %s %s &#x27;, key, this.parameters[key]);
+			}
+			
+		}
+		
+		var exec = require(&#x27;child_process&#x27;).exec,child;
+		
+		var self = this;
+		
+		child = exec(this.command,function (error, stdout, stderr) {
+			
+			if(callback!==undefined){
+				callback(self.filename,stderr);
+			}
+			
+		});
+	},
+	this.recordVideo = function(file, callback){
+		
+		if (typeof(file) == &#x22;function&#x22;) {
+			callback = file;
+			file=null;
+		}
+		
+		if(!this.folder){
+			this.folder = util.format(&#x22;%s/videos&#x22;, __dirname);
+		}
+		
+		if(file){
+			this.filename = util.format(&#x22;%s/%s&#x22;, this.folder, file);
+		}else{
+			this.filename = util.format(&#x22;%s/%s.h264&#x22;, this.folder, new Date().toJSON());
+		}
+		
+		this.output(this.filename);
+		
+		this.command = &#x22;raspivid&#x22;;
+		
+		
+		//if we are streaming remove output command
+		if(this.parameters[&#x27;-o - &#x3e;&#x27;]){
+			delete this.parameters[&#x22;-o&#x22;];
+		}
+		
+		for(key in this.parameters){
+		
+			if(this.parameters[key]){
+				this.command+= util.format(&#x27; %s %s &#x27;, key, this.parameters[key]);
+			}
+			
+		}
+		
+		var exec = require(&#x27;child_process&#x27;).exec,child;
+		
+		var self = this;
+		
+		child = exec(this.command,function (error, stdout, stderr) {
+			
+			if(callback!==undefined){
+				callback(self.filename,stderr);
+			}
+			
+		});
+		
+	},
+	this.prepare = function(parameters){
+		
+		for(key in parameters){
+			this[key](parameters[key]);
+		}
+		
+		return this;
+		
+	},
+	this.quality = function(value){
+		
+		this.parameters[&#x27;-q&#x27;]= value;
+		
+		return this;
+	},
+	this.width = function(value){
+		
+		this.parameters[&#x27;-w&#x27;]= value;
+		
+		return this;
+	},
+	this.height = function(value){
+		
+		this.parameters[&#x27;-h&#x27;]= value;
+		
+		return this;
+	},
+	this.preview = function(value){
+		
+		this.parameters[&#x22;-p&#x22;] = value;
+		
+	},
+	this.fullscreen = function(value){
+		
+		if(value===undefined)
+			value=&#x22;&#x22;;
+		
+		this.parameters[&#x22;-f&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.nopreview  = function(value) {
+		
+		if(value===undefined)
+			value=&#x22;&#x22;;
+		
+		this.parameters[&#x22;-n&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.opacity  = function(value){
+		
+		this.parameters[&#x22;-op&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.sharpness= function(value){
+		
+		this.parameters[&#x22;-sh&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.contrast= function(value){
+		
+		this.parameters[&#x22;-co&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.brightness= function(value){
+		
+		this.parameters[&#x22;-br&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.saturation= function(value){
+		
+		this.parameters[&#x22;-sa&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.ISO= function(value){
+		
+		if(value===undefined)
+			value=&#x22;&#x22;;
+		
+		this.parameters[&#x22;-ISO&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.vstab= function(value){
+		
+		if(value===undefined)
+			value=&#x22;&#x22;;
+		
+		this.parameters[&#x22;-vs&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.ev= function(value){
+		
+		this.parameters[&#x22;-ev&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.exposure= function(value){
+		
+		this.parameters[&#x22;-ex&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.awb= function(value){
+		
+		this.parameters[&#x22;-awb&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.imxfx= function(value){
+		
+		this.parameters[&#x22;-ifx&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.colfx= function(value){
+		
+		this.parameters[&#x22;-cfx&#x22;] = value;
+		
+		return this;
+		
+	},
+	this.metering= function(value){
+		
+		if(value===undefined)
+			value=&#x22;&#x22;;
+		
+		this.parameters[&#x22;-mm&#x22;] = value;
+		
+		return this; ...</pre></li>
+    <li>example usage<pre class="apidocCodePre">n/a</pre></li>
+    </ul>
+
+
+</div>
+
+<div class="apidocFooterDiv">
+    [ this document was created with
+    <a href="https://github.com/kaizhu256/node-utility2" target="_blank">utility2</a>
+    ]
+</div>
+</div>
